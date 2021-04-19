@@ -3,3 +3,143 @@ title: "R Notebook"
 output: html_notebook
 ---
 
+```{r}
+
+#load in libraries to be used
+library(tidyverse)
+library(here)
+library(janitor)
+
+#test where the top level of the project directory is 
+here::here()
+
+#use this to set the path to the data file
+raw_data <- read_rds( here("raw_data/decathlon.rds"))
+
+#assign raw data and apply janitor to clean names 
+result_table <- clean_names(raw_data)
+
+names(result_table)
+
+#no column for name - must be a row name perhaps
+
+row.names(result_table)
+
+rt_name <- rownames_to_column(result_table, var="name") 
+
+summary(rt_name)
+```
+From the summary of the data it can be seen that there are 2 competitions with 10 events, rank and points 
+
+
+
+```{r}
+class(rt_name$long_jump
+    )
+#mutate the columns to lowercase 
+rt_name %>% 
+   mutate_all(.funs = tolower)
+```
+
+
+
+```{r}
+
+#to make into a long form table
+
+ 
+long_form_data <- rt_name %>%
+    pivot_longer(
+    cols = c(x100m, long_jump, shot_put, high_jump, x400m, x110m_hurdle, discus, pole_vault, javeline, x1500m),
+    names_to = "event",
+    values_to = "results"
+    ) %>% 
+  mutate_all(.funs=tolower) %>% 
+  mutate_at(vars(points, rank, results), as.numeric)
+  
+long_form_data
+```
+
+Who had the longest long jump seen in the data?
+
+```{r}
+
+
+ 
+long_form_data %>% 
+  group_by(event) %>% 
+  filter(event == "long_jump") %>% 
+  arrange(desc(results)) %>% 
+  head(1)
+
+```
+What was the average 100m time in each competition?
+
+```{r}
+long_form_data %>% 
+  filter(event == "x100m") %>% 
+  group_by(competition) %>% 
+  summarise(avg_time = mean(results, na.rm = TRUE))
+
+```
+Who had the highest total points across both competitions?
+
+```{r}
+long_form_data %>% 
+  select(name, points) %>% 
+  arrange(desc(points)) %>% 
+  head(1)
+  
+ 
+```
+
+What was the shot-put scores for the top three competitors in each competition?
+
+
+
+```{r}
+long_form_data %>% 
+  arrange(desc(points)) %>% 
+  filter(event == "shot_put", competition == "olympicg") %>% 
+  head(3)
+
+```
+
+```{r}
+long_form_data %>% 
+  arrange(desc(points)) %>% 
+  filter(event == "shot_put", competition == "decastar") %>% 
+  head(3)
+```
+What was the average points for competitors who ran the 400m in less than 50 seconds vs. those than ran 400m in more than 50 seconds?
+
+```{r}
+
+
+less_than_50 <- long_form_data %>% 
+  arrange(desc(points)) %>% 
+  filter(event == "x400m", results <= 50)
+
+  mean(less_than_50$points)
+
+
+
+
+
+# mutate(avg_points = mean(less_than_50))
+# avg_points
+
+  # mutate(avg_points = mean(long_form_data %>% 
+  #  mutate_at(vars(points, rank), as.numeric) %>% 
+  # arrange(desc(points)) %>% 
+  # filter(event == "x400m", results<= "50")))
+```
+
+```{r}
+greater_than_50 <- long_form_data %>% 
+  arrange(desc(points)) %>% 
+  filter(event == "x400m", results >= 50)
+
+  mean(greater_than_50$points)
+```
+
