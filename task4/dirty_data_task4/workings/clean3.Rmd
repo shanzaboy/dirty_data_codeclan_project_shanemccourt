@@ -1,0 +1,144 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+```{r}
+#load in libraries to be used
+library(tidyverse)
+library(here)
+library(janitor)
+library(readxl)
+
+#test where the top level of the project directory is 
+here::here()
+getwd()
+
+#use this to set the path to the data file
+#raw1 <- read_xlsx(here("raw_data/boing-boing-candy-2015.xlsx"))
+
+#raw2 <- read_xlsx( here("raw_data/boing-boing-candy-2016.xlsx"))
+# 
+raw3 <- read_xlsx( here("raw_data/boing-boing-candy-2017.xlsx"))
+#assign raw data and apply janitor to clean names 
+
+
+
+
+```
+
+```{r}
+
+#group by 
+#raw3 %>% 
+  # group_by(`Q4: COUNTRY`) %>% 
+  # mutate(count = n(), .after = `Q4: COUNTRY`) %>% 
+  # select(`Q4: COUNTRY`, count)
+  
+
+
+```
+
+```{r}
+# #run janitor
+# raw3 <- clean_names(raw3)
+```
+
+
+```{r}
+#clean columns with Q6 in it to allow for pivot
+
+names(raw3) <- gsub("Q6 |", "", names(raw3), fixed = TRUE)
+names(raw3) <- gsub("Q5:", "", names(raw3), fixed = TRUE)
+names(raw3) <- gsub("Q4:", "", names(raw3), fixed = TRUE)
+names(raw3) <- gsub("Q3:", "", names(raw3), fixed = TRUE)
+names(raw3) <- gsub("Q2:", "", names(raw3), fixed = TRUE)
+names(raw3) <- gsub("Q1:", "", names(raw3), fixed = TRUE)
+raw3 <- clean_names(raw3)
+raw3
+```
+
+```{r}
+# #Add a row "year" and make all entries 2017
+# 
+raw3 <- add_column(raw3, "observation" = 2017, .after = "internal_id")
+
+raw3 <- clean_names(raw3)
+
+```
+
+```{r}
+long_form_data3 <- raw3 %>%
+    pivot_longer(
+    cols = 7:110,
+    names_to = "event",
+    values_to = "response") %>% 
+
+
+ select(observation, going_out, gender, age, country, event,response)
+  # mutate_all(.funs=tolower) %>% 
+  # mutate_at(vars(points, rank, results), as.numeric)
+  
+```
+
+
+```{r}
+#drop all rows that have NA's
+cleaned3 <- drop_na(long_form_data3)
+cleaned3
+```
+
+```{r}
+
+```
+```{r}
+cleaned3<- cleaned3 %>% 
+    mutate(country = str_replace_all(country,"canada","Canada")) %>% 
+  mutate(country = str_to_title(country)) %>% 
+  mutate(country = str_replace_all(country,"United States","USA")) %>% 
+  mutate(country = str_replace_all(country,"Uk","UK")) %>% 
+  mutate(country = str_replace_all(country,"Usa","USA")) %>% 
+  mutate(country = str_replace_all(country,"Us","USA")) %>% 
+    mutate(country = str_replace_all(country,"USA Of America","USA")) %>% 
+  mutate(country = str_replace_all(country,"U.s.","USA")) %>% 
+  mutate(country = str_replace_all(country,"U.s.a.","USA"))
+```
+```{r}
+cleaned3 %>%
+  group_by(country) %>%
+  summarise(count = n())
+```
+```{r}
+view(cleaned3)
+```
+
+
+
+```{r}
+#write to a new csv
+
+
+write_csv(cleaned3, file = "clean_data/cleaned3.csv")
+
+
+```
+
+# ```{r}
+# #make all upper class
+# cleaned3 <- mutate_all(cleaned3, .funs=toupper) %>% 
+#   mutate(country = str_replace(country, " US", "gtfrd"))
+# 
+# ```
+# 
+# ```{r}
+# cleaned3 %>% 
+#   group_by(country) %>% 
+#   summarise(count = n())
+# # country is fucked
+```
+```{r}
+
+```
+

@@ -13,6 +13,7 @@ library(janitor)
 #test where the top level of the project directory is 
 here::here()
 
+
 #use this to set the path to the data file
 raw_data <- read_rds( here("raw_data/decathlon.rds"))
 
@@ -61,18 +62,15 @@ long_form_data
 ```
 
 Who had the longest long jump seen in the data?
-
 ```{r}
-
-
- 
 long_form_data %>% 
   group_by(event) %>% 
   filter(event == "long_jump") %>% 
   arrange(desc(results)) %>% 
   head(1)
-
 ```
+
+
 What was the average 100m time in each competition?
 
 ```{r}

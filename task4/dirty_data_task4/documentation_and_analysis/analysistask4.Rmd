@@ -1,0 +1,166 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+#load in libraries to be used
+library(tidyverse)
+library(here)
+library(janitor)
+library(readxl)
+library(assertr)
+
+options(scipen = 9999)
+
+#test where the top level of the project directory is 
+here::here()
+```
+
+
+```{r}
+craw <- read_csv(here("clean_data/combinedrawscript1.csv"))
+
+#df <- read.csv("file.csv", na.strings = c("foo", "bar"))
+```
+
+```{r}
+#change column type to more appropriate class
+
+craw <- craw %>%
+  mutate(country = as.character(country),
+         gender = as.character(gender),
+         age = as.integer(age))
+
+```
+```{r}
+# craw <- craw %>% 
+#   mutate(country = str_replace_all(country,,"other"))
+```
+
+What is the total number of candy ratings given across the three years. (number of candy ratings, not number of raters. Don’t count missing values)
+What was the average age of people who are going out trick or treating and the average age of people 3. not going trick or treating?
+For each of joy, despair and meh, which candy bar revived the most of these ratings?
+How many people rated Starburst as despair?
+For the next three questions, count despair as -1, joy as +1 and meh as 0.
+
+What was the most popular candy bar by this rating system for each gender in the dataset?
+What was the most popular candy bar in each year?
+What was the most popular candy bar by this rating for people in US, Canada, UK and all other countries?
+
+```{r}
+
+#What is the total number of candy ratings given across the three years. (number of candy ratings, not number of raters. Don’t count missing values)
+
+#firstly identify the columns with proper ratings then sum these rows
+
+#summary(craw)
+
+craw %>% 
+  filter(response == "JOY" | response == "DESPAIR" | response == "MEH") %>% 
+# group_by(response) %>% 
+summarise(response_count = n())
+
+
+```
+What was the average age of people who are going out trick or treating and the average age of people 3. not going trick or treating?
+
+```{r}
+#clean the bad values in the age column
+
+# test1 <- replace(craw$age, which(craw$age > 0), NA)
+
+summary(craw)
+```
+
+
+```{r}
+
+#filter craw only to include less than 100
+
+craw = filter(craw, age <= 100)
+
+  
+```
+
+
+```{r}
+craw %>%
+  group_by(going_out) %>% 
+  #summarise(count = n()) 
+  summarise(mean_age = mean(age, na.rm = TRUE)) %>% 
+  mutate(mean_age = round(mean_age, 1))
+```
+
+For each of joy, despair and meh, which candy bar revived the most of these ratings?
+```{r}
+craw %>% 
+  filter(response == "JOY" | response == "DESPAIR" | response == "MEH") %>% 
+  group_by(response) %>% 
+  summarise(response_count = n()) %>% 
+  head(1)
+```
+ How many people rated Starburst as despair?
+ 
+```{r}
+craw = filter(craw, response == "JOY" | response == "DESPAIR" | response == "MEH")
+```
+ 
+```{r}
+craw %>% 
+  filter( event == "starburst" & response == "DESPAIR") %>% 
+  group_by(event) %>% 
+    summarise(count = n())
+```
+ For the next three questions, count despair as -1, joy as +1 and meh as 0.
+
+
+```{r}
+#changing rating system
+rating<- craw %>% 
+  mutate(response = str_replace_all(response,"JOY","1")) %>% 
+  mutate(response = str_replace_all(response,"MEH","0")) %>% 
+  mutate(response = str_replace_all(response,"DESPAIR","-1")) %>%  
+  mutate(response = as.numeric(response)) 
+
+
+  # group_by(response) %>%
+  # summarise(new_rating = sum(response, na.rm = TRUE))
+```
+
+```{r}
+rating %>% 
+  group_by(response) %>% 
+  summarise(new_rating = sum(response, na.rm = TRUE)) %>% 
+  mutate(response = as.character(response)) %>% 
+  mutate(response = recode(response, "-1" = "DESPAIR")) %>% 
+  mutate(response = recode(response, "0" = "MEH")) %>% 
+  mutate(response = recode(response, "1" = "JOY"))
+```
+What was the most popular candy bar by this rating system for each gender in the dataset?
+
+```{r}
+rating %>% 
+  group_by(gender, event) %>%
+   summarise(new_rating = sum(response, na.rm = TRUE)) %>% 
+  arrange(desc(new_rating)) %>% 
+  head(2)
+  
+
+
+```
+
+What was the most popular candy bar in each year?
+
+```{r}
+rating %>% 
+  group_by(observation) %>% 
+  summarise(new_rating = sum(observation, na.rm = TRUE)) %>% 
+  arrange(desc(new_rating))
+
+```
+
+
+
+What was the most popular candy bar by this rating for people in US, Canada, UK and all other countries?
+

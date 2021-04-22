@@ -1,0 +1,72 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+
+#load in libraries to be used
+library(tidyverse)
+library(here)
+library(janitor)
+library(readxl)
+
+#test where the top level of the project directory is 
+here::here()
+
+#use this to set the path to the data file
+raw1 <- read_xlsx(here("raw_data/boing-boing-candy-2015.xlsx"))
+
+#raw2 <- read_xlsx( here("raw_data/boing-boing-candy-2016.xlsx"))
+# raw3 <- read_xlsx( here("raw_data/boing-boing-candy-2017.xlsx"))
+#assign raw data and apply janitor to clean names 
+
+```
+```{r}
+#load 2016
+raw1 <- as_tibble(raw1)
+
+raw1 <- add_column(raw1, "observation" = 2015, .after = "Timestamp")
+
+# select(observation, going_out, gender, age, country, event,response)
+raw1
+
+```
+```{r}
+names(raw1) <- gsub("Are you going actually going trick or treating yourself?", "going_out", names(raw1), fixed = TRUE)
+names(raw1) <- gsub("How old are you?", "age", names(raw1), fixed = TRUE)
+ raw1 <- clean_names(raw1)
+```
+```{r}
+#pivot long 
+long_form_data1 <- raw1 %>%
+    pivot_longer(
+    cols = c(5:99, 114:116),
+    names_to = "event",
+    values_to = "response") %>% 
+  select(observation, going_out, age, event,response)
+   
+    #mutate_at(vars(age), as.numeric) - best doing this to the full rbind
+
+long_form_data1
+```
+
+
+
+```{r}
+#drop all rows that have NA's
+cleaned1 <- drop_na(long_form_data1)
+
+#need to drop_na before we add these 2 fields
+# cleaned1 <- add_column(cleaned1, "country" = "", .after = "age")
+# cleaned1 <- add_column(cleaned1, "gender" = "", .after = "going_out")
+
+cleaned1  
+```
+```{r}
+#write to a new csv
+
+
+write_csv(cleaned1, file = here("workings/cleaned1.csv"))
+```
+

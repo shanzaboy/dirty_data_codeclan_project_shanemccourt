@@ -1,0 +1,107 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+#load in libraries to be used
+library(tidyverse)
+library(here)
+library(janitor)
+library(readxl)
+
+#test where the top level of the project directory is 
+here::here()
+
+#use this to set the path to the data file
+#raw1 <- read_xlsx(here("raw_data/boing-boing-candy-2015.xlsx"))
+
+raw2 <- read_xlsx( here("raw_data/boing-boing-candy-2016.xlsx"))
+# raw3 <- read_xlsx( here("raw_data/boing-boing-candy-2017.xlsx"))
+#assign raw data and apply janitor to clean names 
+
+```
+
+
+```{r}
+#load 2016
+raw2 <- as_tibble(raw2)
+
+raw2 <- add_column(raw2, "observation" = 2016, .after = "Timestamp")
+
+
+```
+```{r}
+names(raw2) <- gsub("Are you going actually going trick or treating yourself?", "going_out", names(raw2), fixed = TRUE)
+names(raw2) <- gsub("Your gender:", "gender", names(raw2), fixed = TRUE)
+names(raw2) <- gsub("How old are you?", "age", names(raw2), fixed = TRUE)
+names(raw2) <- gsub("Which country do you live in?", "country", names(raw2), fixed = TRUE)
+raw2
+```
+```{r}
+raw2 <- clean_names(raw2)
+```
+
+```{r}
+long_form_data2 <- raw2 %>%
+    pivot_longer(
+    cols = 7:107,
+    names_to = "event",
+    values_to = "response") %>% 
+    select(observation, going_out, gender, age, country, event,response)
+    #mutate_at(vars(age), as.numeric) - best doing this to the full rbind
+
+long_form_data2
+```
+
+```{r}
+#drop all rows that have NA's
+cleaned2 <- drop_na(long_form_data2)
+cleaned2
+```
+
+# cleaned2 %>% 
+#     mutate_all(country, str_to_upper(country))
+
+# cleaned2 %>%
+#   group_by(country) %>%
+#   summarise(count = n())
+
+
+#make all upper class
+# cleaned3 <- mutate_all(cleaned3, .funs=toupper) %>% 
+#   mutate(country = str_replace(country, " US", "gtfrd"))
+# view(cleaned2)
+```{r}
+cleaned2<- cleaned2 %>% 
+    mutate(country = str_replace_all(country,"canada","Canada")) %>% 
+  mutate(country = str_to_title(country)) %>% 
+  mutate(country = str_replace_all(country,"United States","USA")) %>% 
+  mutate(country = str_replace_all(country,"Uk","UK")) %>% 
+  mutate(country = str_replace_all(country,"Usa","USA")) %>% 
+  mutate(country = str_replace_all(country,"Us","USA")) %>% 
+    mutate(country = str_replace_all(country,"USA Of America","USA")) %>% 
+  mutate(country = str_replace_all(country,"U.s.","USA")) %>% 
+  mutate(country = str_replace_all(country,"U.s.a.","USA"))
+```
+
+
+
+```{r}
+cleaned2 %>%
+  group_by(country) %>%
+  summarise(count = n())
+```
+
+
+```{r}
+
+view(cleaned2)
+
+#write to a new csv
+
+
+#write_csv(cleaned2, file = here("workings/cleaned2.csv"))
+```
+
+```
+

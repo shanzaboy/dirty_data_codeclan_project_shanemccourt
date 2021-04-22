@@ -1,0 +1,70 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#load in libraries to be used
+library(tidyverse)
+library(here)
+library(janitor)
+
+#test where the top level of the project directory is 
+here::here()
+
+#use this to set the path to the data file
+raw_data <- read_( here(""))
+
+#assign raw data and apply janitor to clean names 
+result_table <- clean_names(raw_data)
+
+names(result_table)
+
+#no column for name - must be a row name perhaps
+
+row.names(result_table)
+
+rt_name <- rownames_to_column(result_table, var="name") 
+
+summary(rt_name)
+
+```{r}
+#load in libraries to be used
+library(tidyverse)
+library(here)
+library(janitor)
+library(readxl)
+
+#test where the top level of the project directory is 
+here::here()
+
+#use this to set the path to the data file
+raw1 <- read_xlsx(here("raw_data/boing-boing-candy-2015.xlsx"))
+
+raw2 <- read_xlsx( here("raw_data/boing-boing-candy-2016.xlsx"))
+
+raw3 <- read_xlsx( here("raw_data/boing-boing-candy-2017.xlsx"))
+#assign raw data and apply janitor to clean names 
+
+glimpse(raw1)
+summary(raw1)
+
+#how to chnage all the column headers at once
+colnames(object) <- sub("Log\\.", "", colnames(object))
+
+colnames(df) <- gsub('.', '', colnames(df), fixed=TRUE)
+```
+
+```{r}
+raw3 %>% 
+  group_by(`Q4: COUNTRY`) %>% 
+  mutate(count = n(), .after = `Q4: COUNTRY`) %>% 
+  select(`Q4: COUNTRY`, count)
+  
+
+
+```
+
+```{r}
+clean_names(raw3)
+```
+

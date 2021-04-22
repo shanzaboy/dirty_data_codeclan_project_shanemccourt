@@ -1,0 +1,17 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(dplyr)
+library(readr)
+
+clean1 <- read_csv(here("workings/cleaned1.csv"))
+clean2 <- read_csv(here("workings/cleaned2.csv"))
+clean3 <- read_csv(here("workings/cleaned3.csv"))
+total <- rbind(clean1, clean2, clean3)
+
+write_csv(total, file = here("clean_data/combinedraw.csv"))
+```
+
